@@ -399,3 +399,29 @@ function core_login_pre_signup_requests() {
         }
     }
 }
+
+/**
+ * A function to require recent authentication when accessing high security pages.
+ */
+function require_recent_login() {
+    global $SESSION, $USER, $DB, $CFG, $PAGE;
+
+    $time = $CFG->recentauthtime;
+
+    // Check last time user logged in.
+    $loginrecord = $DB->get_record('user', array('id' => ($USER->id)));
+    // Protection from empty record.
+    if (!empty($loginrecord)) {
+        $lastlogin = $loginrecord->currentlogin;
+    } else {
+        $lastlogin = 0;
+    }
+    $currenttime = time();
+
+    if ($lastlogin < ($currenttime - $time)) {
+        // Store current URL
+        $SESSION->wantsurl = $PAGE->url;
+        // If not reauthenticated recently, redirect to form
+        redirect(new moodle_url('/login/recent_auth.php'));
+    }
+}

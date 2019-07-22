@@ -3033,8 +3033,15 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
  * @return void
  */
 function require_admin() {
+    global $CFG;
     require_login(null, false);
     require_capability('moodle/site:config', context_system::instance());
+
+    // Check if recent authentication is required.
+    if ($CFG->recentauthadmin) {
+        require_once($CFG->dirroot.'/login/lib.php');
+        require_recent_login();
+    }
 }
 
 /**
