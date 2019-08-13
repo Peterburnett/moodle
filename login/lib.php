@@ -422,6 +422,6 @@ function require_recent_login() {
         // Store current URL.
         $SESSION->wantsurl = $PAGE->url;
         // If not reauthenticated recently, redirect to form.
-        redirect(new moodle_url('/login/recent_auth.php'));
+        //redirect(new moodle_url('/login/recent_auth.php'));
     }
 }
