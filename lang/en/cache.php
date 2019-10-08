@@ -81,6 +81,7 @@ $string['cachedef_userselections'] = 'Data used to persist user selections throu
 $string['cachedef_user_group_groupings'] = 'User\'s groupings and groups per course';
 $string['cachedef_yuimodules'] = 'YUI Module definitions';
 $string['cachelock_file_default'] = 'Default file locking';
+$string['cachereadonly'] = 'Cache config is forced in config.php. Values on this page are read-only.';
 $string['cachestores'] = 'Cache stores';
 $string['canuselocalstore'] = 'Can use local store';
 $string['component'] = 'Component';

@@ -79,7 +79,9 @@ if (!empty($action) && confirm_sesskey()) {
                         $config['lock'] = $data->lock;
                     }
                 }
-                $writer->add_store_instance($data->name, $data->plugin, $config);
+                if (empty($CFG->cache_config_class)) {
+                    $writer->add_store_instance($data->name, $data->plugin, $config);
+                }
                 redirect($PAGE->url, get_string('addstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
             }
             break;
@@ -100,7 +102,9 @@ if (!empty($action) && confirm_sesskey()) {
                         $config['lock'] = $data->lock;
                     }
                 }
-                $writer->edit_store_instance($data->name, $data->plugin, $config);
+                if (empty($CFG->cache_config_class)) {
+                    $writer->edit_store_instance($data->name, $data->plugin, $config);
+                }
                 redirect($PAGE->url, get_string('editstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
             }
             break;
@@ -133,7 +137,9 @@ if (!empty($action) && confirm_sesskey()) {
                     exit;
                 } else {
                     $writer = cache_config_writer::instance();
-                    $writer->delete_store_instance($store);
+                    if (empty($CFG->cache_config_class)) {
+                        $writer->delete_store_instance($store);
+                    }
                     redirect($PAGE->url, get_string('deletestoresuccess', 'cache'), 5);
                 }
             }
@@ -155,7 +161,9 @@ if (!empty($action) && confirm_sesskey()) {
                         $mappings[] = $mapping;
                     }
                 }
-                $writer->set_definition_mappings($definition, $mappings);
+                if (empty($CFG->cache_config_class)) {
+                    $writer->set_definition_mappings($definition, $mappings);
+                }
                 redirect($PAGE->url);
             }
             break;
@@ -182,7 +190,9 @@ if (!empty($action) && confirm_sesskey()) {
                 $writer = cache_config_writer::instance();
                 $sharing = array_sum(array_keys($data->sharing));
                 $userinputsharingkey = $data->userinputsharingkey;
-                $writer->set_definition_sharing($definition, $sharing, $userinputsharingkey);
+                if (empty($CFG->config_cache_class)) {
+                    $writer->set_definition_sharing($definition, $sharing, $userinputsharingkey);
+                }
                 redirect($PAGE->url);
             }
             break;
@@ -202,7 +212,9 @@ if (!empty($action) && confirm_sesskey()) {
                     cache_store::MODE_REQUEST => array($data->{'mode_'.cache_store::MODE_REQUEST}),
                 );
                 $writer = cache_config_writer::instance();
-                $writer->set_mode_mappings($mappings);
+                if (empty($CFG->cache_config_class)) {
+                    $writer->set_mode_mappings($mappings);
+                }
                 redirect($PAGE->url);
             }
             break;
@@ -285,7 +297,9 @@ if (!empty($action) && confirm_sesskey()) {
                     exit;
                 } else {
                     $writer = cache_config_writer::instance();
-                    $writer->delete_lock_instance($lock);
+                    if (empty($CFG->cache_config_class)) {
+                        $writer->delete_lock_instance($lock);
+                    }
                     redirect($PAGE->url, get_string('deletelocksuccess', 'cache'), 5);
                 }
             }
@@ -306,6 +320,9 @@ $renderer = $PAGE->get_renderer('core_cache');
 
 echo $renderer->header();
 echo $renderer->heading($title);
+if (!empty($CFG->cache_config_class)) {
+    echo $renderer->notification(get_string('cachereadonly', 'cache'), 'info');
+}
 echo $renderer->notifications($notifications);
 
 if ($mform instanceof moodleform) {

@@ -119,7 +119,10 @@ class cache_factory {
      */
     public static function instance($forcereload = false) {
         global $CFG;
-        if ($forcereload || self::$instance === null) {
+
+        if (!empty($CFG->cache_config_class) && class_exists($CFG->cache_config_class)) {
+            self::$instance = new $CFG->cache_config_class();
+        } else if ($forcereload || self::$instance === null) {
             // Initialise a new factory to facilitate our needs.
             if (defined('CACHE_DISABLE_ALL') && CACHE_DISABLE_ALL !== false) {
                 // The cache has been disabled. Load disabledlib and start using the factory designed to handle this
