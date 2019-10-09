@@ -81,8 +81,11 @@ if (!empty($action) && confirm_sesskey()) {
                 }
                 if (empty($CFG->cache_config_class)) {
                     $writer->add_store_instance($data->name, $data->plugin, $config);
+                    redirect($PAGE->url, get_string('addstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
+                } else {
+                    redirect($PAGE->url);
                 }
-                redirect($PAGE->url, get_string('addstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
+                
             }
             break;
         case 'editstore' : // Edit the requested store.
@@ -104,8 +107,11 @@ if (!empty($action) && confirm_sesskey()) {
                 }
                 if (empty($CFG->cache_config_class)) {
                     $writer->edit_store_instance($data->name, $data->plugin, $config);
+                    redirect($PAGE->url, get_string('editstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
+                } else {
+                    redirect($PAGE->url);
                 }
-                redirect($PAGE->url, get_string('editstoresuccess', 'cache', $storepluginsummaries[$plugin]['name']), 5);
+
             }
             break;
         case 'deletestore' : // Delete a given store.
@@ -139,8 +145,11 @@ if (!empty($action) && confirm_sesskey()) {
                     $writer = cache_config_writer::instance();
                     if (empty($CFG->cache_config_class)) {
                         $writer->delete_store_instance($store);
+                        redirect($PAGE->url, get_string('deletestoresuccess', 'cache'), 5);
+                    } else {
+                        redirect($PAGE->url);
                     }
-                    redirect($PAGE->url, get_string('deletestoresuccess', 'cache'), 5);
+                    
                 }
             }
             break;
@@ -299,8 +308,10 @@ if (!empty($action) && confirm_sesskey()) {
                     $writer = cache_config_writer::instance();
                     if (empty($CFG->cache_config_class)) {
                         $writer->delete_lock_instance($lock);
-                    }
-                    redirect($PAGE->url, get_string('deletelocksuccess', 'cache'), 5);
+                        redirect($PAGE->url, get_string('deletelocksuccess', 'cache'), 5);
+                    } else {
+                        redirect($PAGE->url);
+                    } 
                 }
             }
             break;
