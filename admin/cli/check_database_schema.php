@@ -50,7 +50,7 @@ if ($options['help']) {
     echo $help;
     exit(0);
 }
-
+echo var_dump($CFG);
 if (empty($CFG->version)) {
     echo "Database is not yet installed.\n";
     exit(2);
