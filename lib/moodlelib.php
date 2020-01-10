@@ -4753,12 +4753,10 @@ function validate_internal_user_password($user, $password) {
  * @throws moodle_exception If a problem occurs while generating the hash.
  */
 function hash_internal_user_password($password, $fasthash = false) {
-    global $CFG;
 
-    // Set the cost factor to 4 for fast hashing, otherwise use default cost.
-    $options = ($fasthash) ? array('cost' => 4) : array();
-
-    $generatedhash = password_hash($password, PASSWORD_DEFAULT, $options);
+     // Set the rounds to 1000 for fast hashing, otherwise use default rounds (5000).
+     $rounds = $fasthash ? 1000 : 5000;
+     $generatedhash = crypt($password, '$5$rounds=' . $rounds . '$' . random_string(CRYPT_SALT_LENGTH). '$');
 
     if ($generatedhash === false || $generatedhash === null) {
         throw new moodle_exception('Failed to generate password hash.');
