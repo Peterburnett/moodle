@@ -4753,10 +4753,32 @@ function validate_internal_user_password($user, $password) {
  * @throws moodle_exception If a problem occurs while generating the hash.
  */
 function hash_internal_user_password($password, $fasthash = false) {
+    global $CFG;
 
-     // Set the rounds to 1000 for fast hashing, otherwise use default rounds (5000).
-     $rounds = $fasthash ? 1000 : 5000;
-     $generatedhash = crypt($password, '$5$rounds=' . $rounds . '$' . random_string(CRYPT_SALT_LENGTH). '$');
+    if (property_exists($CFG, 'hashalgorithm') && !empty($CFG->hashalgorithm)) {
+        $algo = $CFG->hashalgorithm;
+    } else {
+        $algo = null;
+    }
+
+    switch ($algo) {
+        case 'sha256':
+            $rounds = $fasthash ? 1000 : 5000;
+            $pwstring = '$5$rounds='.$rounds.'$'.random_string(CRYPT_SALT_LENGTH).'$';
+            $generatedhash = crypt($password, $pwstring);
+            break;
+
+        case 'sha512':
+            $rounds = $fasthash ? 1000 : 5000;
+            $pwstring = '$6$rounds='.$rounds.'$'.random_string(CRYPT_SALT_LENGTH).'$';
+            $generatedhash = crypt($password, $pwstring);
+            break;
+
+        default:
+            $options = $fasthash ? array('cost' => 4) : array();
+            $generatedhash = password_hash($password, PASSWORD_DEFAULT, $options);
+            break;
+    }
 
     if ($generatedhash === false || $generatedhash === null) {
         throw new moodle_exception('Failed to generate password hash.');
@@ -4811,7 +4833,14 @@ function update_internal_user_password($user, $password, $fasthash = false) {
     } else if (isset($user->password)) {
         // If verification fails then it means the password has changed.
         $passwordchanged = !password_verify($password, $user->password);
-        $algorithmchanged = password_needs_rehash($user->password, PASSWORD_DEFAULT);
+
+        // Determine if a non-default algorithm is in use.
+        if (property_exists($CFG, 'hashalgorithm') && !empty($CFG->hashalgorithm)) {
+            $algorithm = $CFG->hashalgorithm;
+        } else {
+            $algorithm = PASSWORD_DEFAULT;
+        }
+        $algorithmchanged = password_needs_rehash($user->password, $algorithm);
     } else {
         // While creating new user, password in unset in $user object, to avoid
         // saving it with user_create()
