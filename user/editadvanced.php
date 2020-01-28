@@ -116,6 +116,11 @@ profile_load_data($user);
 // User interests.
 $user->interests = core_tag_tag::get_item_tags_array('core', 'user', $id);
 
+// Setup webservice for policy check.
+$username = ($user->id !== -1) ? $user->username : null;
+$PAGE->requires->js_call_amd('core/check_password_policy', 'init',
+    array('username' => $user->username, 'elementname' => 'newpassword'));
+
 if ($user->id !== -1) {
     $usercontext = context_user::instance($user->id);
     $editoroptions = array(
@@ -358,4 +363,3 @@ $userform->display();
 
 // And proper footer.
 echo $OUTPUT->footer();
-

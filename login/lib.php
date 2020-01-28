@@ -253,6 +253,11 @@ function core_login_process_password_set($token) {
         $setdata->username2 = $user->username;
         $setdata->token = $user->token;
         $mform->set_data($setdata);
+
+        // Setup webservice for policy check.
+        $PAGE->requires->js_call_amd('core/check_password_policy', 'init',
+            array('username' => $USER->username, 'elementname' => 'password'));
+
         echo $OUTPUT->header();
         echo $OUTPUT->box(get_string('setpasswordinstructions'), 'generalbox boxwidthnormal boxaligncenter');
         $mform->display();
@@ -583,4 +588,3 @@ function core_login_post_signup_requests($data) {
         }
     }
 }
-

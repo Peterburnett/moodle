@@ -73,6 +73,10 @@ if (\core_auth\digital_consent::is_age_digital_consent_verification_enabled()) {
     }
 }
 
+// Setup webservice for policy check.
+$PAGE->requires->js_call_amd('core/check_password_policy', 'init',
+    array('username' => null, 'elementname' => 'password'));
+
 // Plugins can create pre sign up requests.
 // Can be used to force additional actions before sign up such as acceptance of policies, validations, etc.
 core_login_pre_signup_requests();

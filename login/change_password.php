@@ -39,6 +39,9 @@ $systemcontext = context_system::instance();
 $PAGE->set_url('/login/change_password.php', array('id'=>$id));
 
 $PAGE->set_context($systemcontext);
+// Setup webservice for policy check.
+$PAGE->requires->js_call_amd('core/check_password_policy', 'init',
+    array('username' => $USER->username, 'elementname' => 'newpassword'));
 
 if ($return) {
     // this redirect prevents security warning because https can not POST to http pages

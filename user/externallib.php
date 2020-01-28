@@ -2002,4 +2002,62 @@ class core_user_external extends external_api {
             )
         );
     }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.9
+     */
+    public static function check_password_policy_parameters() {
+        return new external_function_parameters(
+            array (
+                'password' => new external_value(PARAM_TEXT, 'Password to check policy against'),
+                'username' => new external_value(PARAM_TEXT, 'The username to check the policy against')
+            )
+        );
+    }
+
+    /**
+     * Check supplied password and username against the password policy.
+     *
+     * @param string $password Password to check policy against.
+     * @param string $username The username to check the policy against.
+     * @return string the error HTML produced by the policy check.
+     */
+    public static function check_password_policy($password, $username) {
+        $params = self::validate_parameters(self::check_password_policy_parameters(), array(
+            'password' => $password,
+            'username' => $username
+        ));
+
+        // Get user, or no user if not found.
+        if (empty($params['username'])) {
+            $user = null;
+        } else {
+            $user = core_user::get_user_by_username('username');
+            if ($user === false) {
+                $user = null;
+            }
+        }
+
+        $errmsg = '';
+        $status = check_password_policy($password, $errmsg, $user);
+
+        return ['errmsg' => $errmsg];
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_single_structure
+     * @since Moodle 3.9
+     */
+    public static function check_password_policy_returns() {
+        return new external_single_structure(
+            array(
+                'errmsg' => new external_value(PARAM_RAW, 'Error message returned from password policy check.')
+            )
+        );
+    }
 }

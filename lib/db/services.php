@@ -1891,6 +1891,15 @@ $functions = array(
         'capabilities' => 'moodle/user:manageownfiles',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
+    'core_check_password_policy' => array(
+        'classname'     => 'core_user_external',
+        'methodname'    => 'check_password_policy',
+        'classpath'     => 'user/externallib.php',
+        'description'   => 'Check the entered password against the password policy',
+        'type'          => 'read',
+        'ajax'          => true,
+        'loginrequired' => false,
+    ),
 
     // Competencies functions.
     'core_competency_create_competency_framework' => array(
