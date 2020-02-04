@@ -736,4 +736,50 @@ abstract class core_filetypes {
         }
         return $newentry;
     }
+
+    /**
+     * Returns an array of file extensions for use with filemanager and filepicker.
+     * This function is used to apply sitewide file restrictions, and breaks filetype groups
+     * apart to allow only approved filetypes.
+     *
+     * @param array|string $allowedtypes an array of allowed file extensions or groups, or '*' for all.
+     * @param bool $splittypes whether the parent type restrictions (e.g. web_image) should always be split to extensions.
+     * @return array|string the array of all allowed filetypes, following site restriction application , or '*' for all.
+     */
+    public static function file_apply_siterestrictions($allowedtypes, $splittypes = false) {
+        global $CFG;
+
+        $util = new core_form\filetypes_util();
+        $sitewidetypes = $util->normalize_file_types($CFG->allowedfiletypes);
+        if (empty($sitewidetypes)) {
+            $sitewidetypes = '*';
+        }
+
+        // If parent should always be split to extensions.
+        if ($splittypes) {
+            if (is_array($sitewidetypes)) {
+                // Remove any dupes if types is an array.
+                $sitewidetypes = $util->expand(array_unique($sitewidetypes));
+            }
+        }
+
+        // Cast single case to array, in case it's not already.
+        $allowedtypes = (array) $allowedtypes;
+
+        if ($allowedtypes === array('*') || $allowedtypes === array()) {
+            // If no restrictions exist on this repository type.
+            return $sitewidetypes;
+        } else if ($sitewidetypes === '*') {
+            // If no sitewide restrictions are imposed, return allowedtypes.
+            return $allowedtypes;
+        } else {
+            // If file type restrictions already exist.
+            // Convert sitewide and allowed to extensions only, remove any duplicates.
+            $sitewidetypes = $util->expand(array_unique($sitewidetypes));
+            $allowedtypes = $util->expand(array_unique($allowedtypes));
+
+            // Filter extensions for types allowed by sitewide restrictions then reset indices for order.
+            return array_values(array_intersect($allowedtypes, $sitewidetypes));
+        }
+    }
 }

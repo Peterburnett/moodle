@@ -54,6 +54,7 @@ function dndupload_add_to_course($course, $modnames) {
         'fullpath' => '/course/dndupload.js',
         'strings' => array(
             array('addfilehere', 'moodle'),
+            array('filenotuploaded', 'error'),
             array('dndworkingfiletextlink', 'moodle'),
             array('dndworkingfilelink', 'moodle'),
             array('dndworkingfiletext', 'moodle'),
@@ -240,12 +241,25 @@ class dndupload_handler {
     protected function register_file_handler($extension, $module, $message) {
         $extension = strtolower($extension);
 
-        $add = new stdClass;
-        $add->extension = $extension;
-        $add->module = $module;
-        $add->message = $message;
-
-        $this->filehandlers[] = $add;
+        // If filetype restrictions exist, apply to extension.
+        // If type is all, split to allowed extensions, and register a handler for each one.
+        // Else, only apply handler if extension after restrictions is not empty.
+        $allowed = core_filetypes::file_apply_siterestrictions($extension, true);
+        if ($extension === '*' && $allowed !== '*') {
+            foreach ($allowed as $allowedfile) {
+                // Remove . from filename.
+                $allowedfile = preg_replace('/\./', '', $allowedfile);
+                // Recursively register filehandler for individual extensions.
+                $this->register_file_handler($allowedfile, $module, $message);
+            }
+            return;
+        } else if (!empty($allowed)) {
+            $add = new stdClass;
+            $add->extension = $extension;
+            $add->module = $module;
+            $add->message = $message;
+            $this->filehandlers[] = $add;
+        }
     }
 
     /**

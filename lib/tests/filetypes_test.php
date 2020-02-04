@@ -250,4 +250,69 @@ class core_filetypes_testcase extends advanced_testcase {
         core_filetypes::revert_type_to_default('asm');
         $this->assertObjectNotHasAttribute('customfiletypes', $CFG);
     }
+
+    public function test_file_apply_siterestrictions() {
+        $this->resetAfterTest(true);
+        global $CFG;
+        // Set 2 types of files allowed, PDF and PNG.
+        $CFG->allowedfiletypes = 'pdf, png';
+        // Test default options,  '*'.
+        $expected = array('.pdf', '.png');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions('*'));
+        // Test default as an array.
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('*')));
+
+        // Test filegroup 'web_image'.
+        // This will split the filegroups only extensions inside the filegroup,
+        // AND inside allowedfiletypes.
+        // PDF won't be allowed here.
+        $expected = array('.png');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions('web_image'));
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('web_image')));
+
+        // Test multiple file groups.
+        $expected = array('.png', '.pdf');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('web_image', 'document')));
+
+        // Test that calling twice doesn't produce garbage (e.g. inherited options filemanager->filepicker).
+        $expected = array('.png', '.pdf');
+        $firstrun = core_filetypes::file_apply_siterestrictions(array('web_image', 'document'));
+        $this->assertEquals($expected, $firstrun);
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions($firstrun));
+
+        // Test that with no available filetypes, empty array returned.
+        $CFG->allowedfiletypes = 'pdf';
+        $expected = array();
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('web_image')));
+
+        // Test empty array returned for empty input.
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('')));
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(''));
+
+        // Test config with groups.
+        $CFG->allowedfiletypes = 'html_track';
+        $expected = array('.vtt');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('pdf', 'vtt', 'mp3')));
+
+        // Test no split of groups for all filetypes, as there is nothing to filter.
+        $expected = array('html_track');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('*')));
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions('*'));
+
+        // Multiple type splits.
+        $CFG->allowedfiletypes = 'document';
+        $expected = array('.doc', '.docx');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('doc', 'docx')));
+        $expected = array('.doc');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions('doc'));
+
+        // Check duplicate extensions are handled correctly.
+        $expected = array('.doc', '.docx');
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions(array('doc', 'doc', 'docx')));
+
+        // Unset allowedfiletypes, and check that splitting is handled correctly.
+        $CFG->allowedfiletypes = '';
+        $expected = '*';
+        $this->assertEquals($expected, core_filetypes::file_apply_siterestrictions('*', true));
+    }
 }

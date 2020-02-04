@@ -1040,7 +1040,7 @@ function file_copy_file_to_file_area($file, $filename, $itemid) {
  * @return string|null if $text was passed in, the rewritten $text is returned. Otherwise NULL.
  */
 function file_save_draft_area_files($draftitemid, $contextid, $component, $filearea, $itemid, array $options=null, $text=null, $forcehttps=false) {
-    global $USER;
+    global $CFG, $USER;
 
     // Do not merge files, leave it as it was.
     if ($draftitemid === IGNORE_FILE_MERGE) {
@@ -1064,12 +1064,20 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
     if (!isset($options['areamaxbytes'])) {
         $options['areamaxbytes'] = FILE_AREA_MAX_BYTES_UNLIMITED; // Unlimited.
     }
+    if (!isset($options['accepted_types'])) {
+        $options['accepted_types'] = '*'; // No restrictions.
+    }
     $allowreferences = true;
     if (isset($options['return_types']) && !($options['return_types'] & (FILE_REFERENCE | FILE_CONTROLLED_LINK))) {
         // we assume that if $options['return_types'] is NOT specified, we DO allow references.
         // this is not exactly right. BUT there are many places in code where filemanager options
         // are not passed to file_save_draft_area_files()
         $allowreferences = false;
+    }
+
+    // Sitewide filetype check.
+    if (!empty($CFG->allowedfiletypes)) {
+        $options['accepted_types'] = core_filetypes::file_apply_siterestrictions($options['accepted_types'], true);
     }
 
     // Check if the user has copy-pasted from other draft areas. Those files will be located in different draft
@@ -1094,6 +1102,7 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         $newhashes = array();
         $filecount = 0;
         $context = context::instance_by_id($contextid, MUST_EXIST);
+        $filedeleted = false;
         foreach ($draftfiles as $file) {
             if (!$options['subdirs'] && $file->get_filepath() !== '/') {
                 continue;
@@ -1113,10 +1122,30 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
                     // more files - should not get here at all
                     continue;
                 }
+
+                // Only delete bad files if allowed filetypes is setup.
+                if (!empty($CFG->allowedfiletypes) && isset($options['accepted_types']) && $options['accepted_types'] != '*') {
+                    $allowedtypes = $options['accepted_types'];
+                    $name = $file->get_filename();
+                    // Check for directories.
+                    if ($name != '.') {
+                        // If extension isn't in allowed list, skip saving file.
+                        $extension = strtolower('.' . pathinfo($name, PATHINFO_EXTENSION));
+                        if (!in_array($extension, $allowedtypes)) {
+                            $filedeleted = true;
+                            continue;
+                        }
+                    }
+                }
+
                 $filecount++;
             }
             $newhash = $fs->get_pathname_hash($contextid, $component, $filearea, $itemid, $file->get_filepath(), $file->get_filename());
             $newhashes[$newhash] = $file;
+        }
+        // Show notification if there were deleted files from sitewide restrictions.
+        if ($filedeleted) {
+            \core\notification::error(get_string('filedeletedfromrestriction', 'error'));
         }
 
         // Loop through oldfiles and decide which we need to delete and which to update.

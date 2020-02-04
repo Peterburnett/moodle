@@ -74,6 +74,11 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
                 $this->_options[$name] = $value;
             }
         }
+
+        if (!empty($CFG->allowedfiletypes)) {
+            $this->_options['accepted_types'] = \core_filetypes::file_apply_siterestrictions($this->_options['accepted_types']);
+        }
+
         if (!empty($options['maxbytes'])) {
             $this->_options['maxbytes'] = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $options['maxbytes']);
         }
@@ -433,6 +438,11 @@ class form_filemanager implements renderable {
         $files = $fs->get_area_files($usercontext->id, 'user', 'draft', $options->itemid, 'id', false);
         $filecount = count($files);
         $this->options->filecount = $filecount;
+
+        // Sitewide file restriction check.
+        if (!empty($CFG->allowedfiletypes)) {
+            $options->accepted_types = \core_filetypes::file_apply_siterestrictions($options->accepted_types);
+        }
 
         // copying other options
         foreach ($options as $name=>$value) {

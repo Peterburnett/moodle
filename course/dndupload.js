@@ -597,6 +597,8 @@ M.course_dndupload = {
 
         if (handlers.length == 0) {
             // No handlers at all (not even 'resource'?)
+            // Show preview that file wasn't uploaded, let user try again.
+            this.show_preview_element(section, {addmessage: M.util.get_string('filenotuploaded', 'error')});
             return;
         }
 

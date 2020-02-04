@@ -1106,18 +1106,21 @@ abstract class repository implements cacheable_object {
             $repository = self::get_repository_by_id($record->id, $current_context);
             $repository->options['sortorder'] = $sortorder++;
 
-            $is_supported = true;
+            $issupported = true;
 
-            // check mimetypes
-            if ($args['accepted_types'] !== '*' and $repository->supported_filetypes() !== '*') {
-                $accepted_ext = file_get_typegroup('extension', $args['accepted_types']);
-                $supported_ext = file_get_typegroup('extension', $repository->supported_filetypes());
-                $valid_ext = array_intersect($accepted_ext, $supported_ext);
-                $is_supported = !empty($valid_ext);
+            if (!empty($CFG->allowedfiletypes) && $args['accepted_types'] === array()) {
+                // If no types are accepted from sitewide restrictions.
+                $issupported = false;
+            } else if ($args['accepted_types'] !== '*' and $repository->supported_filetypes() !== '*') {
+                // Check mimetypes.
+                $acceptedext = file_get_typegroup('extension', $args['accepted_types']);
+                $supportedext = file_get_typegroup('extension', $repository->supported_filetypes());
+                $validext = array_intersect($acceptedext, $supportedext);
+                $issupported = !empty($validext);
             }
             // Check return values.
             if (!empty($args['return_types']) && !($repository->supported_returntypes() & $args['return_types'])) {
-                $is_supported = false;
+                $issupported = false;
             }
 
             if (!$args['onlyvisible'] || ($repository->is_visible() && !$repository->disabled)) {
@@ -1127,7 +1130,7 @@ abstract class repository implements cacheable_object {
                     // coursefiles plugin needs managefiles permission
                     $capability = $capability && has_capability('moodle/course:managefiles', $current_context);
                 }
-                if ($is_supported && $capability) {
+                if ($issupported && $capability) {
                     $repositories[$repository->id] = $repository;
                 }
             }
@@ -3136,6 +3139,11 @@ function initialise_filepicker($args) {
     $disable_types = array();
     if (!empty($args->disable_types)) {
         $disable_types = $args->disable_types;
+    }
+
+    // Sitewide filetype check.
+    if (!empty($CFG->allowedfiletypes)) {
+        $args->accepted_types = core_filetypes::file_apply_siterestrictions($args->accepted_types);
     }
 
     $user_context = context_user::instance($USER->id);

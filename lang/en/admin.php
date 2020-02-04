@@ -52,6 +52,7 @@ $string['allowcohortthemes'] = 'Allow cohort themes';
 $string['allowcoursethemes'] = 'Allow course themes';
 $string['allowediplist'] = 'Allowed IP list';
 $string['allowedemaildomains'] = 'Allowed email domains';
+$string['allowedfiletypes'] = 'Allowed upload file types';
 $string['allowemailaddresses'] = 'Allowed email domains';
 $string['allowemojipicker'] = 'Emoji picker';
 $string['allowindexing'] = 'Allow indexing by search engines';
@@ -156,6 +157,7 @@ $string['configallowcategorythemes'] = 'If you enable this, then themes can be s
 $string['configallowcohortthemes'] = 'If you enable this, then themes can be set at the cohort level. This will affect all users with only one cohort or more than one but with the same theme.';
 $string['configallowcoursethemes'] = 'If enabled, then courses will be allowed to set their own themes.  Course themes override all other theme choices (site, user, category, cohort or URL-defined themes).';
 $string['configallowedemaildomains'] = 'List email domains that are allowed to be disclosed in the "From" section of outgoing email. The default of "Empty" will use the No-reply address for all outgoing email. The use of wildcards is allowed e.g. *.example.com will allow emails sent from any subdomain of example.com, but not example.com itself. This will require separate entry.';
+$string['configallowedfiletypes'] = 'Enter a comma separated list of file types which should be allowed to be uploaded into the system. If blank then no site level restrictions will apply. Forms that only accept certain files, eg only images, will be further restricted by this setting.';
 $string['configallowemailaddresses'] = 'To restrict new email addresses to particular domains, list them here separated by spaces. All other domains will be rejected. To allow subdomains, add the domain with a preceding \'.\'. To allow a root domain together with its subdomains, add the domain twice - once with a preceding \'.\' and once without e.g. .ourcollege.edu.au ourcollege.edu.au.';
 $string['configallowemojipicker'] = 'The emoji picker enables users to select emojis, such as smilies, to add to messages and other text areas via an emoji picker button in the Atto toolbar.';
 $string['configallowemojipickerincompatible'] = 'Your current database configuration does not properly support emojis. In order to enable the emoji picker you will need to <a href="https://docs.moodle.org/en/MySQL_full_unicode_support">upgrade your database for full unicode support</a>.';

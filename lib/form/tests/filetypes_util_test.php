@@ -119,19 +119,20 @@ class filetypes_util_testcase extends advanced_testcase {
         force_current_language('en');
 
         // Check that it is able to describe individual file extensions.
-        $desc = $util->describe_file_types('jpg .jpeg *.jpe PNG;.gif,  mudrd8mz');
+        $desc = $util->describe_file_types('jpg *.jpe PNG;.gif,  mudrd8mz');
         $this->assertTrue($desc->hasdescriptions);
 
         $desc = $desc->descriptions;
-        $this->assertEquals(4, count($desc));
+        $this->assertEquals(2, count($desc));
 
         $this->assertEquals('File', $desc[0]->description);
         $this->assertEquals('.mudrd8mz', $desc[0]->extensions);
 
-        $this->assertEquals('Image (JPEG)', $desc[2]->description);
-        $this->assertStringContainsString('.jpg', $desc[2]->extensions);
-        $this->assertStringContainsString('.jpeg', $desc[2]->extensions);
-        $this->assertStringContainsString('.jpe', $desc[2]->extensions);
+        $this->assertEquals('Image', $desc[1]->description);
+        $this->assertStringContainsString('.jpg', $desc[1]->extensions);
+        $this->assertStringContainsString('.jpe', $desc[1]->extensions);
+        $this->assertStringContainsString('.gif', $desc[1]->extensions);
+        $this->assertStringContainsString('.png', $desc[1]->extensions);
 
         // Check that it can describe groups and mimetypes too.
         $desc = $util->describe_file_types('audio text/plain');
@@ -505,5 +506,47 @@ class filetypes_util_testcase extends advanced_testcase {
         $this->assertEmpty($util->get_not_whitelisted('txt', 'text/plain'));
         $this->assertDebuggingCalled('filetypes_util::get_not_whitelisted() is deprecated. ' .
             'Please use filetypes_util::get_not_listed() instead.', DEBUG_DEVELOPER);
+    }
+
+
+    /**
+     * Data provider for testing test_collapse_filetype_groups.
+     *
+     * @return array
+     */
+    public function test_collapse_filetype_groups_provider(): array {
+        return [
+            [
+                ['doc', 'docx', 'epub', 'gdoc', 'odt', 'oth', 'ott', 'pdf', 'rtf'],
+                ['document'] // Collapsible group.
+            ],
+            [
+                ['doc', 'docx', 'epub', 'gdoc', 'odt', 'oth', 'ott', 'pdf'],
+                ['.doc', '.docx', '.epub', '.gdoc', '.odt', '.oth', '.ott', '.pdf'] // Non-collapsible group.
+            ],
+            [
+                ['doc', 'docx', 'epub', 'gdoc', 'odt', 'oth', 'ott', 'pdf', 'rtf', 'aac', 'flac', 'm4a', 'mp3', 'oga', 'ogg', 'wav'],
+                ['document', 'html_audio'] // 2 collapsible groups.
+            ],
+            [
+                ['doc', 'docx', 'gdoc', 'odt', 'oth', 'ott', 'pdf', 'aac', 'flac', 'm4a', 'mp3', 'oga', 'ogg', 'wav'],
+                ['.doc', '.docx', '.gdoc', '.odt', '.oth', '.ott', '.pdf', 'html_audio'] // 1 collapsible, 1 non-collapsible.
+            ],
+            [
+                ['aac', 'flac', 'm4a', 'mp3', 'oga', 'ogg', 'ra', 'wav'],
+                ['html_audio', 'web_audio'] // Shared groups.
+            ]
+        ];
+    }
+
+    /**
+     * Test collapse_filetype_groups.
+     * @dataProvider test_collapse_filetype_groups_provider
+     * @param array $types The filetypes to collapse.
+     * @param array $expected The expected result.
+     */
+    public function test_collapse_filetype_groups($types, $expected) {
+        $util = new filetypes_util();
+        $this->assertEqualsCanonicalizing($expected, $util->collapse_filetype_groups($types));
     }
 }

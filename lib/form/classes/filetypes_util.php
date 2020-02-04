@@ -211,7 +211,10 @@ class filetypes_util {
     public function describe_file_types($types) {
 
         $descriptions = [];
+
         $types = $this->normalize_file_types($types);
+        // Before we go through and categorise each type, we should collapse full groups.
+        $types = $this->collapse_filetype_groups($types);
 
         foreach ($types as $type) {
             if ($type === '*') {
@@ -224,9 +227,16 @@ class filetypes_util {
             } else if ($this->looks_like_mimetype($type)) {
                 $desc = get_mimetype_description($type);
                 $descriptions[$desc] = file_get_typegroup('extension', [$type]);
-
             } else {
                 $desc = get_mimetype_description(['filename' => 'fakefile'.$type]);
+
+                // If we have lots to display, be a bit more agressive in shrinking matches.
+                if (count($types) >= 5) {
+                    // Perform some string mangling to remove bulky extensions at display time in displaying groups.
+                    // Match brackets with only uppercase letters.
+                    $desc = preg_replace('~ \([A-Z]+\)~', '', $desc);
+                }
+
                 if (isset($descriptions[$desc])) {
                     $descriptions[$desc][] = $type;
                 } else {
@@ -557,5 +567,71 @@ class filetypes_util {
         }
 
         return array_keys($unknown);
+    }
+
+    /**
+     * This will collapse any complete filetype groups from extensions into group.
+     *
+     * @param array $types The array to collapse
+     * @return array Collapsed array of filetypes and groups
+     */
+    public function collapse_filetype_groups(array $types): array {
+
+        $types = $this->normalize_file_types($types);
+        $mimetypes = core_filetypes::get_types();
+        $returngroups = [];
+
+        while (count($types) > 0) {
+            $element = reset($types);
+
+            // If this is already a group, add to return array.
+            if ($this->is_filetype_group($element)) {
+                $returngroups[] = $element;
+                array_shift($types);
+                continue;
+            }
+
+            // Now we should get the group of the element. If not in any group, just add it to the return.
+            // Strip any leading dots to compare against mimetype array.
+            $ext = substr($element, 0, 1) === '.' ? substr($element, 1) : $element;
+            if (!empty($mimetypes[$ext]) && !empty($mimetypes[$ext]['groups'])) {
+                $groups = $mimetypes[$ext]['groups'];
+            } else {
+                $returngroups[] = $element;
+                array_shift($types);
+                continue;
+            }
+
+            // Is this element in atleast 1 satisfied group?
+            $needed = false;
+            $satisfiedgroups = [];
+            foreach ($groups as $group) {
+                $groupname = $group;
+                // Now lets split to elements.
+                $group = $this->expand($group);
+                // Use diff to see if group is satisfied.
+                $satisfied = !array_diff($group, $types);
+                // Now store the group until we have completed all groups for the element.
+                if ($satisfied) {
+                    $satisfiedgroups[$groupname] = $group;
+                    $needed = true;
+                }
+            }
+
+            // This file isn't inside any satisfied groups. Just return it.
+            if (!$needed) {
+                $returngroups[] = $element;
+                array_shift($types);
+            }
+
+            // Now go through all the satisfied groups, add to the return array and remove all elements from parent.
+            foreach ($satisfiedgroups as $satname => $satgroup) {
+                $returngroups[] = $satname;
+                $types = array_diff($types, $satgroup);
+            }
+        }
+
+        // All satisfied groups should now be reduced from extensions.
+        return $returngroups;
     }
 }

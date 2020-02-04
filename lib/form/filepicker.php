@@ -83,6 +83,17 @@ class MoodleQuickForm_filepicker extends HTML_QuickForm_input implements templat
         if (!empty($PAGE->course->maxbytes)) {
             $coursemaxbytes = $PAGE->course->maxbytes;
         }
+
+        // Sitewide filecheck.
+        if (!empty($CFG->allowedfiletypes)) {
+            // Check for empty options array, treat as all.
+            if ($options === array ()) {
+                $this->_options['accepted_types'] = \core_filetypes::file_apply_siterestrictions('*');
+            } else {
+                $this->_options['accepted_types'] = \core_filetypes::file_apply_siterestrictions($options['accepted_types']);
+            }
+        }
+
         $this->_options['maxbytes'] = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $coursemaxbytes, $fpmaxbytes);
         $this->_type = 'filepicker';
         parent::__construct($elementName, $elementLabel, $attributes);
