@@ -73,7 +73,7 @@ class core_cache_renderer extends plugin_renderer_base {
         $defaultstoreactions = get_string('defaultstoreactions', 'cache');
 
         foreach ($storeinstancesummaries as $name => $storesummary) {
-            $actions = cache_administration_helper::get_store_instance_actions($name, $storesummary);
+            $htmlactions = cache_factory::get_administration_display_helper()->get_store_instance_actions($name, $storesummary);
             $modes = array();
             foreach ($storesummary['modes'] as $mode => $enabled) {
                 if ($enabled) {
@@ -91,10 +91,6 @@ class core_cache_renderer extends plugin_renderer_base {
             $info = '';
             if (!empty($storesummary['default'])) {
                 $info = $this->output->pix_icon('i/info', $defaultstoreactions, '', array('class' => 'icon'));
-            }
-            $htmlactions = array();
-            foreach ($actions as $action) {
-                $htmlactions[] = $this->output->action_link($action['url'], $action['text']);
             }
 
             $isready = $storesummary['isready'] && $storesummary['requirementsmet'];
@@ -169,7 +165,7 @@ class core_cache_renderer extends plugin_renderer_base {
         $table->data = array();
 
         foreach ($storepluginsummaries as $name => $plugin) {
-            $actions = cache_administration_helper::get_store_plugin_actions($name, $plugin);
+            $htmlactions = cache_factory::get_administration_display_helper()->get_store_plugin_actions($name, $plugin);
 
             $modes = array();
             foreach ($plugin['modes'] as $mode => $enabled) {
@@ -183,11 +179,6 @@ class core_cache_renderer extends plugin_renderer_base {
                 if ($enabled) {
                     $supports[] = get_string('supports_'.$support, 'cache');
                 }
-            }
-
-            $htmlactions = array();
-            foreach ($actions as $action) {
-                $htmlactions[] = $this->output->action_link($action['url'], $action['text']);
             }
 
             $row = new html_table_row(array(
@@ -247,12 +238,7 @@ class core_cache_renderer extends plugin_renderer_base {
 
         $none = new lang_string('none', 'cache');
         foreach ($definitionsummaries as $id => $definition) {
-            $actions = cache_administration_helper::get_definition_actions($context, $definition);
-            $htmlactions = array();
-            foreach ($actions as $action) {
-                $action['url']->param('definition', $id);
-                $htmlactions[] = $this->output->action_link($action['url'], $action['text']);
-            }
+            $htmlactions = cache_factory::get_administration_display_helper()->get_definition_actions($context, $definition);
             if (!empty($definition['mappings'])) {
                 $mapping = join(', ', $definition['mappings']);
             } else {
@@ -379,13 +365,24 @@ class core_cache_renderer extends plugin_renderer_base {
             ));
         }
 
-        $url = new moodle_url('/cache/admin.php', array('action' => 'newlockinstance', 'sesskey' => sesskey()));
-        $select = new single_select($url, 'lock', cache_administration_helper::get_addable_lock_options());
-        $select->label = get_string('addnewlockinstance', 'cache');
-
         $html = html_writer::start_tag('div', array('id' => 'core-cache-lock-summary'));
         $html .= $this->output->heading(get_string('locksummary', 'cache'), 3);
         $html .= html_writer::table($table);
+        $html .= html_writer::end_tag('div');
+        return $html;
+    }
+
+    /**
+     * Renders additional actions for locks, such as Add.
+     *
+     * @return string
+     */
+    public function additional_lock_actions() : string {
+        $url = new moodle_url('/cache/admin.php', array('action' => 'newlockinstance', 'sesskey' => sesskey()));
+        $select = new single_select($url, 'lock', cache_factory::get_administration_display_helper()->get_addable_lock_options());
+        $select->label = get_string('addnewlockinstance', 'cache');
+
+        $html = html_writer::start_tag('div', array('id' => 'core-cache-lock-additional-actions'));
         $html .= html_writer::tag('div', $this->output->render($select), array('class' => 'new-instance'));
         $html .= html_writer::end_tag('div');
         return $html;

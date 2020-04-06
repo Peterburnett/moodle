@@ -149,11 +149,11 @@ class core_cache_administration_helper_testcase extends advanced_testcase {
      * Test instantiating an add store form.
      */
     public function test_get_add_store_form() {
-        $form = cache_administration_helper::get_add_store_form('file');
+        $form = cache_factory::get_administration_display_helper()->get_add_store_form('file');
         $this->assertInstanceOf('moodleform', $form);
 
         try {
-            $form = cache_administration_helper::get_add_store_form('somethingstupid');
+            $form = cache_factory::get_administration_display_helper()->get_add_store_form('somethingstupid');
             $this->fail('You should not be able to create an add form for a store plugin that does not exist.');
         } catch (moodle_exception $e) {
             $this->assertInstanceOf('coding_exception', $e, 'Needs to be: ' .get_class($e)." ::: ".$e->getMessage());
@@ -164,21 +164,23 @@ class core_cache_administration_helper_testcase extends advanced_testcase {
      * Test instantiating a form to edit a store instance.
      */
     public function test_get_edit_store_form() {
+        // Always instantiate a new core display helper here.
+        $administrationhelper = new cache_administration_display_helper;
         $config = cache_config_writer::instance();
         $this->assertTrue($config->add_store_instance('test_get_edit_store_form', 'file'));
 
-        $form = cache_administration_helper::get_edit_store_form('file', 'test_get_edit_store_form');
+        $form = $administrationhelper->get_edit_store_form('file', 'test_get_edit_store_form');
         $this->assertInstanceOf('moodleform', $form);
 
         try {
-            $form = cache_administration_helper::get_edit_store_form('somethingstupid', 'moron');
+            $form = $administrationhelper->get_edit_store_form('somethingstupid', 'moron');
             $this->fail('You should not be able to create an edit form for a store plugin that does not exist.');
         } catch (moodle_exception $e) {
             $this->assertInstanceOf('coding_exception', $e);
         }
 
         try {
-            $form = cache_administration_helper::get_edit_store_form('file', 'blisters');
+            $form = $administrationhelper->get_edit_store_form('file', 'blisters');
             $this->fail('You should not be able to create an edit form for a store plugin that does not exist.');
         } catch (moodle_exception $e) {
             $this->assertInstanceOf('coding_exception', $e);

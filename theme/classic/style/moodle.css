@@ -12618,7 +12618,7 @@ body.h5p-embed .h5pmessages {
 
 #core-cache-rescan-definitions,
 #core-cache-mode-mappings .edit-link,
-#core-cache-lock-summary .new-instance {
+#core-cache-lock-additional-actions .new-instance {
   margin-top: 0.5em;
   text-align: center; }
 
