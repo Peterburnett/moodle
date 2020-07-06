@@ -286,6 +286,11 @@ class enrol_self_plugin extends enrol_plugin {
             }
         }
 
+        // Check if user has the capability to enrol in this context.
+        if (!has_capability('enrol/self:enrolself', context_course::instance($instance->courseid))) {
+            return false;
+        }
+
         return true;
     }
 
