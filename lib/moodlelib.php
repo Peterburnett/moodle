@@ -6334,7 +6334,7 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
                 // Make sure both variables are normalised before comparing.
                 $allowedpath = str_replace('\\', '/', realpath($allowedpath));
                 // Set addpath to false if the attachment includes one of the allowed paths.
-                if (strpos($attachpath, $allowedpath) === 0) {
+                if (!empty($allowedpath) && strpos($attachpath, $allowedpath) === 0) {
                     $addpath = false;
                     break;
                 }
