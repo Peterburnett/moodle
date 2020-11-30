@@ -6022,12 +6022,21 @@ function generate_email_messageid($localpart = null) {
  */
 function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', $attachment = '', $attachname = '',
                        $usetrueaddress = true, $replyto = '', $replytoname = '', $wordwrapwidth = 79) {
-    // Get mailer class.
-    $agent = \core\email\factory::get_email_handler();
 
-    // Send the mail.
-    return $agent->send($user, $from, $subject, $messagetext, $messagehtml, $attachment, $attachname,
-        $usetrueaddress, $replyto, $replytoname, $wordwrapwidth);
+    // Configure the options and email.
+    $options = [
+        'usetrueaddress' => $usetrueaddress,
+        'wordwrapwidth' => $wordwrapwidth,
+    ];
+
+    $email = new \core\email\email($user, $from, $options);
+    $email->set_replyto($replyto, $replytoname);
+    $email->set_subject($subject);
+    $email->set_content($messagetext, $messagehtml);
+    $email->set_attachment($attachment, $attachname);
+
+    // Now send the constructed email.
+    return \core\email\manager::send($email);
 }
 
 /**
