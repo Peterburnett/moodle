@@ -749,3 +749,38 @@ function upgrade_core_licenses() {
         set_config('sitedefaultlicense', reset($activelicenses));
     }
 }
+
+/**
+ * Fix the timestamps for files where their timestamps are older
+ * than the directory listing that they are contained in.
+ */
+function upgrade_fix_file_timestamps() {
+    global $DB;
+
+    // Due to incompatability in SQL syntax for updates with joins,
+    // These will be updated in a select + seperate update.
+    $sql = "SELECT f.id, f2.timecreated
+              FROM {files} f
+              JOIN {files} f2
+                     ON f2.contextid = f.contextid
+                     AND f2.filepath = f.filepath
+                     AND f2.component = f.component
+                     AND f2.filearea = f.filearea
+                     AND f2.itemid = f.itemid
+                     AND f2.filename = '.'
+             WHERE f2.timecreated > f.timecreated";
+
+    $recordset = $DB->get_recordset_sql($sql);
+
+    if (!$recordset->valid()) {
+        $recordset->close();
+        return;
+    }
+
+    foreach ($recordset as $record) {
+        $record->timemodified = $record->timecreated;
+        $DB->update_record('files', $record);
+    }
+
+    $recordset->close();
+}
