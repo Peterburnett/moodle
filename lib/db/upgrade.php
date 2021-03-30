@@ -40,6 +40,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\task\fix_file_timestamps_task;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -2547,6 +2549,15 @@ function xmldb_main_upgrade($oldversion) {
 
         // Main savepoint reached.
         upgrade_main_savepoint(true, 2021033100.01);
+    }
+
+    if ($oldversion < 2021040600.01) {
+        // Start an adhoc task to fix the file timestamps of restored files.
+        $task = new fix_file_timestamps_task();
+        \core\task\manager::queue_adhoc_task($task);
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2021040600.01);
     }
 
     return true;
